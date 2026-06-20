@@ -1,5 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/", "destination": "/bluff_card_game.html" }
-  ]
+  "framework": null
 }
