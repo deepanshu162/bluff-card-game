@@ -1,8 +1,40 @@
 
 <style>
+:root{
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --border-radius-md: 6px;
+  --border-radius-lg: 10px;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #F5F7FA;
+  --color-text-primary: #0B2540;
+  --color-text-secondary: #586976;
+  --color-border-primary: #D1D9E3;
+  --color-border-secondary: #E3E9F1;
+  --color-border-tertiary: #EAF2FB;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary: #071021;
+    --color-background-secondary: #091522;
+    --color-text-primary: #E6EEF8;
+    --color-text-secondary: #9FB0C6;
+    --color-border-primary: rgba(255,255,255,0.06);
+    --color-border-secondary: rgba(255,255,255,0.04);
+    --color-border-tertiary: rgba(255,255,255,0.03);
+  }
+}
+.dark{
+  --color-background-primary: #071021;
+  --color-background-secondary: #091522;
+  --color-text-primary: #E6EEF8;
+  --color-text-secondary: #9FB0C6;
+  --color-border-primary: rgba(255,255,255,0.06);
+  --color-border-secondary: rgba(255,255,255,0.04);
+  --color-border-tertiary: rgba(255,255,255,0.03);
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-.game { padding: 1rem; max-width: 680px; }
+body { font-family: var(--font-sans); background: var(--color-background-secondary); color: var(--color-text-primary); transition: background .25s, color .25s; }
+.game { padding: 1rem; max-width: 680px; position: relative; margin: 0 auto; }
 .area { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; margin-bottom: 12px; }
 .area-title { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
 .cards-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 52px; align-items: center; }
@@ -57,6 +89,9 @@ body { font-family: var(--font-sans); }
 </style>
 
 <div class="game" id="app">
+  <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+    <button type="button" id="theme-toggle" class="btn" aria-label="Toggle theme">🌙</button>
+  </div>
   <div id="setup-screen">
     <div class="setup">
       <h2>Bluff</h2>
@@ -115,6 +150,9 @@ body { font-family: var(--font-sans); }
 const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const SUITS = ['♠','♥','♦','♣'];
 const RED_SUITS = ['♥','♦'];
+
+// Delay (ms) after a player makes a move before advancing
+const MOVE_DELAY = 700;
 
 let state = {};
 let numPlayers = 3;
@@ -292,7 +330,7 @@ function playCards() {
   state.passCount = 0;
   state.players.forEach(p => p.passed = false);
   checkWin(0);
-  if (!state.gameOver) advanceTurn();
+  if (!state.gameOver) setTimeout(() => advanceTurn(), MOVE_DELAY);
 }
 
 function callBluff() {
@@ -346,7 +384,7 @@ function passAction() {
   state.passCount++;
   addLog('You passed.');
   checkFlush();
-  if (!state.gameOver) advanceTurn();
+  if (!state.gameOver) setTimeout(() => advanceTurn(), MOVE_DELAY);
 }
 
 function checkFlush() {
@@ -410,7 +448,7 @@ function aiTurn() {
       render();
       setTimeout(() => revealPile(state.turnIndex), 400);
     } else {
-      advanceTurn();
+      setTimeout(() => advanceTurn(), MOVE_DELAY);
     }
     return;
   }
@@ -444,11 +482,34 @@ function aiTurn() {
   state.players.forEach(pl => pl.passed = false);
   addLog(`${p.name} played ${playCount} card${playCount > 1 ? 's' : ''} claiming ${playCount} ${rank}${playCount > 1 ? 's' : ''}.`);
   checkWin(state.turnIndex);
-  if (!state.gameOver) advanceTurn();
+  if (!state.gameOver) setTimeout(() => advanceTurn(), MOVE_DELAY);
 }
 
 function renderLog() {
   const el = document.getElementById('game-log');
   el.innerHTML = state.log.map(l => `<p>${l}</p>`).join('');
 }
+// Theme toggle: apply, persist, and respect system preference
+(function(){
+  const btn = document.getElementById('theme-toggle');
+  function updateBtn(){
+    if(!btn) return;
+    btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  }
+  function setTheme(t){
+    if(t === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+    try{ localStorage.setItem('theme', t); }catch(e){}
+    updateBtn();
+  }
+  if(btn) btn.addEventListener('click', () => {
+    const cur = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+  let saved = null;
+  try{ saved = localStorage.getItem('theme'); }catch(e){}
+  if(saved) setTheme(saved);
+  else if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+})();
 </script>
