@@ -1,0 +1,454 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.game { padding: 1rem; max-width: 680px; }
+.area { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; margin-bottom: 12px; }
+.area-title { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.cards-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 52px; align-items: center; }
+.card { width: 36px; height: 52px; border-radius: 5px; border: 1.5px solid var(--color-border-primary); background: var(--color-background-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; cursor: pointer; position: relative; transition: transform 0.1s, box-shadow 0.1s; user-select: none; }
+.card:hover { transform: translateY(-4px); }
+.card.selected { transform: translateY(-8px); border-color: #185FA5; }
+.card.red { color: #A32D2D; }
+.card.black { color: var(--color-text-primary); }
+.card-back { background: #185FA5; border-color: #0C447C; color: white; font-size: 16px; }
+.pile-card { cursor: default; }
+.pile-card:hover { transform: none; }
+.rank-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.rank-btn { padding: 4px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; }
+.rank-btn:hover { background: var(--color-background-secondary); }
+.rank-btn.active { background: #E6F1FB; border-color: #185FA5; color: #0C447C; }
+.action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; font-family: var(--font-sans); }
+.btn:hover { background: var(--color-background-secondary); }
+.btn:active { transform: scale(0.98); }
+.btn-play { background: #185FA5; color: white; border-color: #0C447C; }
+.btn-play:hover { background: #0C447C; }
+.btn-bluff { background: #A32D2D; color: white; border-color: #791F1F; }
+.btn-bluff:hover { background: #791F1F; }
+.btn-pass { background: var(--color-background-secondary); }
+.player-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.player-tag { display: flex; align-items: center; gap: 6px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 4px 10px; font-size: 13px; }
+.player-tag.active { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+.player-tag.passed { opacity: 0.5; }
+.player-tag.winner { border-color: #0F6E56; background: #E1F5EE; color: #085041; }
+.badge { font-size: 11px; background: var(--color-background-secondary); border-radius: 99px; padding: 1px 7px; color: var(--color-text-secondary); }
+.badge.info { background: #B5D4F4; color: #0C447C; }
+.badge.danger { background: #F7C1C1; color: #791F1F; }
+.badge.success { background: #9FE1CB; color: #085041; }
+.log { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; max-height: 80px; overflow-y: auto; }
+.log p { padding: 2px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.log p:last-child { border-bottom: none; }
+.status-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; }
+.pile-count { font-weight: 500; color: var(--color-text-primary); }
+.claim-badge { background: #FAEEDA; color: #633806; border-radius: var(--border-radius-md); padding: 2px 10px; font-size: 12px; font-weight: 500; }
+.setup { padding: 1.5rem; text-align: center; }
+.setup h2 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--color-text-primary); }
+.setup p { color: var(--color-text-secondary); font-size: 14px; margin-bottom: 16px; }
+.player-count-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+.cnt-btn { width: 44px; height: 44px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); font-size: 18px; cursor: pointer; font-family: var(--font-sans); color: var(--color-text-primary); }
+.cnt-btn:hover { background: var(--color-background-secondary); }
+.cnt-btn.sel { background: #185FA5; color: white; border-color: #0C447C; }
+.overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); border-radius: var(--border-radius-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 500; gap: 8px; z-index: 10; }
+.reveal-area { position: relative; min-height: 80px; }
+.hidden { display: none; }
+.ai-thinking { font-size: 12px; color: var(--color-text-secondary); font-style: italic; margin-top: 4px; }
+.section-label { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+</style>
+
+<div class="game" id="app">
+  <div id="setup-screen">
+    <div class="setup">
+      <h2>Bluff</h2>
+      <p>Get rid of all your cards. Bluff freely — or call others out.</p>
+      <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:8px;">Number of players (you + AI opponents)</p>
+      <div class="player-count-row" id="cnt-btns">
+        <button class="cnt-btn" data-n="2">2</button>
+        <button class="cnt-btn sel" data-n="3">3</button>
+        <button class="cnt-btn" data-n="4">4</button>
+        <button class="cnt-btn" data-n="5">5</button>
+      </div>
+      <button class="btn btn-play" style="font-size:15px; padding: 8px 28px;" onclick="startGame()">Deal cards</button>
+    </div>
+  </div>
+
+  <div id="game-screen" class="hidden">
+    <div class="area" style="margin-bottom:12px;">
+      <div class="area-title">Players</div>
+      <div id="player-row" class="player-row"></div>
+    </div>
+
+    <div class="area reveal-area" id="pile-area">
+      <div class="area-title">Center pile</div>
+      <div class="status-bar">
+        <span class="pile-count" id="pile-count">0 cards</span>
+        <span id="claim-display"></span>
+      </div>
+      <div class="cards-row" id="pile-display"></div>
+      <div id="reveal-overlay" class="overlay hidden"></div>
+    </div>
+
+    <div class="area" id="hand-area">
+      <div class="area-title">Your hand — tap to select</div>
+      <div class="cards-row" id="hand-display"></div>
+    </div>
+
+    <div id="play-controls" class="area hidden">
+      <div class="section-label" id="play-instruction">Choose rank to claim, then select cards and play</div>
+      <div id="rank-selector" class="rank-row"></div>
+      <div class="action-row">
+        <button class="btn btn-play" onclick="playCards()">Play selected</button>
+        <button class="btn btn-bluff" onclick="callBluff()" id="bluff-btn">Call bluff</button>
+        <button class="btn btn-pass" onclick="passAction()">Pass</button>
+      </div>
+      <div id="ai-status" class="ai-thinking"></div>
+    </div>
+
+    <div class="area">
+      <div class="area-title">Game log</div>
+      <div class="log" id="game-log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const SUITS = ['♠','♥','♦','♣'];
+const RED_SUITS = ['♥','♦'];
+
+let state = {};
+let numPlayers = 3;
+
+document.querySelectorAll('#cnt-btns .cnt-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#cnt-btns .cnt-btn').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+    numPlayers = parseInt(b.dataset.n);
+  });
+});
+
+function makeDeck() {
+  const d = [];
+  for (const r of RANKS) for (const s of SUITS) d.push({r, s});
+  for (let i = d.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [d[i], d[j]] = [d[j], d[i]];
+  }
+  return d;
+}
+
+function startGame() {
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  const deck = makeDeck();
+  const players = [];
+  const names = ['You', 'Alice', 'Bob', 'Carol', 'Dave'];
+  for (let i = 0; i < numPlayers; i++) {
+    players.push({ name: names[i], hand: [], passed: false, isHuman: i === 0 });
+  }
+  deck.forEach((c, i) => players[i % numPlayers].hand.push(c));
+  state = {
+    players,
+    pile: [],
+    pileHistory: [],
+    currentClaim: null,
+    currentClaimRank: null,
+    turnIndex: 0,
+    selectedCards: [],
+    selectedRank: null,
+    log: [],
+    gameOver: false,
+    passCount: 0,
+    lastPlayedBy: null
+  };
+  addLog('Game started! You go first.');
+  render();
+  if (!state.players[state.turnIndex].isHuman) setTimeout(aiTurn, 800);
+}
+
+function addLog(msg) {
+  state.log.unshift(msg);
+  if (state.log.length > 20) state.log.pop();
+}
+
+function render() {
+  renderPlayers();
+  renderPile();
+  renderHand();
+  renderControls();
+  renderLog();
+}
+
+function renderPlayers() {
+  const el = document.getElementById('player-row');
+  el.innerHTML = state.players.map((p, i) => {
+    let cls = 'player-tag';
+    if (i === state.turnIndex && !state.gameOver) cls += ' active';
+    if (p.passed) cls += ' passed';
+    if (p.hand.length === 0) cls += ' winner';
+    return `<div class="${cls}">
+      ${p.name}
+      <span class="badge ${p.hand.length === 0 ? 'success' : p.hand.length <= 3 ? 'danger' : 'info'}">${p.hand.length === 0 ? '🏆 won' : p.hand.length + ' cards'}</span>
+      ${p.passed ? '<span style="font-size:11px;color:var(--color-text-secondary);">passed</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderPile() {
+  const cnt = document.getElementById('pile-count');
+  const cd = document.getElementById('claim-display');
+  const pd = document.getElementById('pile-display');
+  cnt.textContent = state.pile.length + ' card' + (state.pile.length !== 1 ? 's' : '');
+  if (state.currentClaimRank && state.pile.length > 0) {
+    const plays = state.pileHistory;
+    const last = plays[plays.length - 1];
+    cd.innerHTML = `<span class="claim-badge">Last claim: ${last ? last.count : ''} ${state.currentClaimRank}${last && last.count > 1 ? 's' : ''} by ${last ? last.name : ''}</span>`;
+  } else {
+    cd.innerHTML = '';
+  }
+  pd.innerHTML = state.pile.map(() => `<div class="card card-back pile-card">🂠</div>`).join('');
+}
+
+function renderHand() {
+  const el = document.getElementById('hand-display');
+  const human = state.players[0];
+  if (!human) return;
+  const sorted = [...human.hand].sort((a, b) => RANKS.indexOf(a.r) - RANKS.indexOf(b.r));
+  el.innerHTML = sorted.map((c, i) => {
+    const isRed = RED_SUITS.includes(c.s);
+    const sel = state.selectedCards.includes(c);
+    return `<div class="card ${isRed ? 'red' : 'black'} ${sel ? 'selected' : ''}" onclick="toggleCard(${human.hand.indexOf(c)})">
+      <span>${c.r}</span><span>${c.s}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(idx) {
+  if (state.turnIndex !== 0 || state.players[0].passed || state.gameOver) return;
+  const c = state.players[0].hand[idx];
+  const si = state.selectedCards.indexOf(c);
+  if (si >= 0) state.selectedCards.splice(si, 1);
+  else state.selectedCards.push(c);
+  render();
+}
+
+function renderControls() {
+  const ctrl = document.getElementById('play-controls');
+  const bluffBtn = document.getElementById('bluff-btn');
+  const inst = document.getElementById('play-instruction');
+  if (state.gameOver || state.turnIndex !== 0) {
+    ctrl.classList.add('hidden');
+    return;
+  }
+  ctrl.classList.remove('hidden');
+  bluffBtn.disabled = state.pile.length === 0;
+  bluffBtn.style.opacity = state.pile.length === 0 ? '0.4' : '1';
+
+  if (state.players[0].passed) {
+    inst.textContent = 'You have passed this round — you may still call bluff';
+    document.getElementById('rank-selector').innerHTML = '';
+    document.querySelector('.btn-play').disabled = true;
+    document.querySelector('.btn-play').style.opacity = '0.4';
+    document.querySelector('.btn-pass').disabled = true;
+    document.querySelector('.btn-pass').style.opacity = '0.4';
+  } else {
+    document.querySelector('.btn-play').disabled = false;
+    document.querySelector('.btn-play').style.opacity = '1';
+    document.querySelector('.btn-pass').disabled = false;
+    document.querySelector('.btn-pass').style.opacity = '1';
+    if (state.currentClaimRank) {
+      inst.textContent = `Pile rank: ${state.currentClaimRank}. Select cards and claim they are ${state.currentClaimRank}s.`;
+      document.getElementById('rank-selector').innerHTML = '';
+      state.selectedRank = state.currentClaimRank;
+    } else {
+      inst.textContent = 'New round — choose any rank to claim:';
+      const rs = document.getElementById('rank-selector');
+      rs.innerHTML = RANKS.map(r => `<button class="rank-btn ${state.selectedRank === r ? 'active' : ''}" onclick="selectRank('${r}')">${r}</button>`).join('');
+    }
+  }
+}
+
+function selectRank(r) {
+  state.selectedRank = r;
+  render();
+}
+
+function playCards() {
+  if (state.selectedCards.length === 0) { alert('Select at least one card to play.'); return; }
+  if (!state.selectedRank && !state.currentClaimRank) { alert('Choose a rank to claim first.'); return; }
+  const rank = state.currentClaimRank || state.selectedRank;
+  const human = state.players[0];
+  state.selectedCards.forEach(c => {
+    state.pile.push(c);
+    human.hand.splice(human.hand.indexOf(c), 1);
+  });
+  const count = state.selectedCards.length;
+  state.pileHistory.push({ name: 'You', count, rank, playerIdx: 0 });
+  state.currentClaimRank = rank;
+  state.lastPlayedBy = 0;
+  addLog(`You played ${count} card${count > 1 ? 's' : ''} claiming ${count} ${rank}${count > 1 ? 's' : ''}.`);
+  state.selectedCards = [];
+  state.selectedRank = null;
+  state.passCount = 0;
+  state.players.forEach(p => p.passed = false);
+  checkWin(0);
+  if (!state.gameOver) advanceTurn();
+}
+
+function callBluff() {
+  if (state.pile.length === 0) return;
+  revealPile(0);
+}
+
+function revealPile(callerIdx) {
+  const overlay = document.getElementById('reveal-overlay');
+  const pd = document.getElementById('pile-display');
+  const last = state.pileHistory[state.pileHistory.length - 1];
+  if (!last) return;
+  const claimedRank = last.rank;
+  const claimedCount = last.count;
+  const lastCards = state.pile.slice(-claimedCount);
+  const isBluff = lastCards.some(c => c.r !== claimedRank);
+  const callerName = state.players[callerIdx].name;
+  const claimerName = last.name;
+  pd.innerHTML = state.pile.map(c => {
+    const isRed = RED_SUITS.includes(c.s);
+    return `<div class="card pile-card ${isRed ? 'red' : 'black'}">${c.r}${c.s}</div>`;
+  }).join('');
+  overlay.classList.remove('hidden');
+  if (isBluff) {
+    overlay.innerHTML = `<span>🎉 Bluff caught!</span><span style="font-size:14px;">${claimerName} takes the pile</span>`;
+    addLog(`${callerName} called bluff — ${claimerName} was bluffing! ${claimerName} takes ${state.pile.length} cards.`);
+    state.players[last.playerIdx].hand.push(...state.pile);
+  } else {
+    overlay.innerHTML = `<span>✅ Truth!</span><span style="font-size:14px;">${callerName} takes the pile</span>`;
+    addLog(`${callerName} called bluff — but ${claimerName} was telling the truth! ${callerName} takes ${state.pile.length} cards.`);
+    state.players[callerIdx].hand.push(...state.pile);
+  }
+  const starterIdx = isBluff ? callerIdx : last.playerIdx;
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    state.pile = [];
+    state.pileHistory = [];
+    state.currentClaimRank = null;
+    state.lastPlayedBy = null;
+    state.players.forEach(p => p.passed = false);
+    state.passCount = 0;
+    state.turnIndex = starterIdx;
+    render();
+    if (!state.players[state.turnIndex].isHuman) setTimeout(aiTurn, 900);
+  }, 2000);
+}
+
+function passAction() {
+  if (state.players[0].passed) return;
+  state.players[0].passed = true;
+  state.passCount++;
+  addLog('You passed.');
+  checkFlush();
+  if (!state.gameOver) advanceTurn();
+}
+
+function checkFlush() {
+  const eligible = state.players.filter(p => p.hand.length > 0);
+  const allPassed = eligible.every(p => p.passed || p === state.players[state.lastPlayedBy]);
+  if (state.pile.length > 0) {
+    const nonLastPassed = state.players.filter((p, i) => i !== state.lastPlayedBy && p.hand.length > 0 && !p.passed);
+    if (nonLastPassed.length === 0 && state.passCount >= state.players.filter((p,i) => i !== state.lastPlayedBy && p.hand.length > 0).length) {
+      addLog('All players passed — pile flushed!');
+      state.pile = [];
+      state.pileHistory = [];
+      state.currentClaimRank = null;
+      state.passCount = 0;
+      state.lastPlayedBy !== null && (state.turnIndex = state.lastPlayedBy);
+      state.players.forEach(p => p.passed = false);
+      render();
+    }
+  }
+}
+
+function advanceTurn() {
+  let next = (state.turnIndex + 1) % state.players.length;
+  let loops = 0;
+  while (state.players[next].hand.length === 0 && loops < state.players.length) {
+    next = (next + 1) % state.players.length;
+    loops++;
+  }
+  state.turnIndex = next;
+  render();
+  if (!state.players[state.turnIndex].isHuman && !state.gameOver) setTimeout(aiTurn, 800);
+}
+
+function checkWin(idx) {
+  if (state.players[idx].hand.length === 0) {
+    state.gameOver = true;
+    const name = state.players[idx].name;
+    addLog(`🏆 ${name} won the game!`);
+    render();
+    const overlay = document.getElementById('reveal-overlay');
+    overlay.classList.remove('hidden');
+    overlay.innerHTML = `<span>${name === 'You' ? '🏆 You win!' : name + ' wins!'}</span><span style="font-size:14px;"><button class="btn" onclick="resetGame()" style="color:white;border-color:rgba(255,255,255,0.5)">Play again</button></span>`;
+  }
+}
+
+function resetGame() {
+  document.getElementById('reveal-overlay').classList.add('hidden');
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('setup-screen').classList.remove('hidden');
+}
+
+function aiTurn() {
+  if (state.gameOver) return;
+  const p = state.players[state.turnIndex];
+  if (!p || p.isHuman || p.hand.length === 0) { advanceTurn(); return; }
+  const ai = document.getElementById('ai-status');
+
+  if (p.passed) {
+    const willBluff = state.pile.length > 0 && Math.random() < 0.15;
+    if (willBluff) {
+      addLog(`${p.name} calls bluff!`);
+      render();
+      setTimeout(() => revealPile(state.turnIndex), 400);
+    } else {
+      advanceTurn();
+    }
+    return;
+  }
+
+  const willCallBluff = state.pile.length > 0 && Math.random() < 0.22;
+  if (willCallBluff) {
+    addLog(`${p.name} calls bluff!`);
+    render();
+    setTimeout(() => revealPile(state.turnIndex), 400);
+    return;
+  }
+
+  const rank = state.currentClaimRank || RANKS[Math.floor(Math.random() * RANKS.length)];
+  const trueCards = p.hand.filter(c => c.r === rank);
+  const bluffing = trueCards.length === 0 || (Math.random() < 0.3 && p.hand.length > 4);
+  const playCount = Math.max(1, Math.min(bluffing ? Math.ceil(Math.random() * 2) : trueCards.length > 0 ? Math.min(trueCards.length, Math.ceil(Math.random() * trueCards.length)) : 1, 3));
+  let toPlay;
+  if (bluffing || trueCards.length === 0) {
+    toPlay = p.hand.slice(0, playCount);
+  } else {
+    toPlay = trueCards.slice(0, playCount);
+  }
+  toPlay.forEach(c => {
+    state.pile.push(c);
+    p.hand.splice(p.hand.indexOf(c), 1);
+  });
+  state.pileHistory.push({ name: p.name, count: playCount, rank, playerIdx: state.turnIndex });
+  state.currentClaimRank = rank;
+  state.lastPlayedBy = state.turnIndex;
+  state.passCount = 0;
+  state.players.forEach(pl => pl.passed = false);
+  addLog(`${p.name} played ${playCount} card${playCount > 1 ? 's' : ''} claiming ${playCount} ${rank}${playCount > 1 ? 's' : ''}.`);
+  checkWin(state.turnIndex);
+  if (!state.gameOver) advanceTurn();
+}
+
+function renderLog() {
+  const el = document.getElementById('game-log');
+  el.innerHTML = state.log.map(l => `<p>${l}</p>`).join('');
+}
+</script>
