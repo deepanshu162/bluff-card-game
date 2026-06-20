@@ -1,216 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bluff Game Rules</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
+# Bluff Card Game
 
-        h1, h2 {
-            color: #222;
-        }
+A digital implementation of the classic **Bluff (Cheat/Liar)** card game where players attempt to get rid of all their cards by either telling the truth or bluffing about the cards they play.
 
-        section {
-            margin-bottom: 30px;
-        }
+## 🎯 Objective
 
-        ul, ol {
-            margin-left: 20px;
-        }
+Be the first player to get rid of all the cards in your hand.
 
-        .example {
-            background: #f4f4f4;
-            padding: 10px;
-            border-left: 4px solid #555;
-            margin: 10px 0;
-        }
-    </style>
-</head>
-<body>
+## 🃏 Game Features
 
-    <h1>Bluff Game Rules</h1>
+* Standard 52-card deck
+* Single-player mode with AI bots
+* Support for 2–5 players
+* Bluff calling system
+* Pass and round-flush mechanics
+* Win validation through final bluff checks
+* Clean and intuitive user interface
 
-    <section>
-        <h2>Objective</h2>
-        <p>
-            The objective of the game is to be the first player to get rid of all the cards in their hand.
-        </p>
-    </section>
+## 📜 Rules Overview
 
-    <section>
-        <h2>Setup</h2>
-        <ul>
-            <li>Use a standard 52-card deck.</li>
-            <li>Shuffle the deck thoroughly.</li>
-            <li>Distribute all cards among the players. Some players may receive one more card than others if the cards cannot be divided equally.</li>
-            <li>Choose a player to start the game.</li>
-        </ul>
-    </section>
+### Starting a Round
 
-    <section>
-        <h2>Starting a Round</h2>
-        <p>
-            The starting player begins a round by placing one or more cards face down into the center pile and declaring a rank (Ace, King, Queen, Jack, or any numbered rank).
-        </p>
-        <p>
-            The declared rank may be truthful or a bluff.
-        </p>
+The starting player places one or more cards face down and declares a rank (Ace, King, Queen, Jack, or any numbered rank).
 
-        <div class="example">
-            <strong>Example:</strong><br>
-            A player places two cards face down and says, "Two Kings."<br>
-            The cards may or may not actually be Kings.
-        </div>
+Example:
 
-        <p>
-            Once a rank has been declared for a round, that rank remains active for the entire round.
-        </p>
-    </section>
+> "Two Kings"
 
-    <section>
-        <h2>Player Actions</h2>
+The declared rank may be truthful or a bluff.
 
-        <h3>1. Continue the Claim</h3>
-        <p>
-            The player places one or more cards face down onto the center pile and declares them to be of the currently active rank.
-        </p>
+### Player Actions
 
-        <p>
-            The player must continue using the same declared rank as the current round.
-        </p>
+On their turn, a player may:
 
-        <div class="example">
-            <strong>Example:</strong><br>
-            Player A declares "Two Kings."<br>
-            Player B may place cards and must also declare them as Kings.<br>
-            Whether the cards are actually Kings is up to Player B.
-        </div>
+#### Continue the Claim
 
-        <h3>2. Call Bluff</h3>
-        <p>
-            The player may challenge the previous play by calling <strong>"Bluff!"</strong>
-        </p>
+* Play one or more cards face down.
+* Declare them as the current round's rank.
 
-        <p>
-            When a bluff is called, the center pile is immediately revealed and resolved according to the Bluff Resolution rules.
-        </p>
+#### Call Bluff
 
-        <h3>3. Pass</h3>
-        <p>
-            The player may choose not to play any cards and pass their turn.
-        </p>
+* Challenge the previous player's claim.
+* The pile is revealed and evaluated.
 
-        <h4>Passing Restriction</h4>
-        <p>
-            Once a player passes during a round, they may not play any cards into the current center pile for the remainder of that round.
-        </p>
+#### Pass
 
-        <p>A player who has passed may still:</p>
-        <ul>
-            <li>Call Bluff on a later turn.</li>
-            <li>Pass again when their turn comes around.</li>
-        </ul>
+* Skip the turn.
+* Cannot play into the current pile again until a new round starts.
+* Can still call Bluff later in the round.
 
-        <p>
-            The player may only play cards again after a new round begins.
-        </p>
-    </section>
+### Bluff Resolution
 
-    <section>
-        <h2>Bluff Resolution</h2>
+#### If the challenged player lied:
 
-        <p>
-            When a player calls <strong>"Bluff!"</strong>, all cards in the center pile are revealed.
-        </p>
+* They take the entire pile.
+* The player who called Bluff starts the next round.
 
-        <h3>If the Challenged Play Was a Bluff</h3>
-        <ul>
-            <li>The challenged player takes the entire center pile into their hand.</li>
-            <li>The player who correctly called Bluff starts the next round.</li>
-        </ul>
+#### If the challenged player told the truth:
 
-        <h3>If the Challenged Play Was Truthful</h3>
-        <ul>
-            <li>The player who called Bluff takes the entire center pile into their hand.</li>
-            <li>The challenged player starts the next round.</li>
-        </ul>
-    </section>
+* The player who called Bluff takes the entire pile.
+* The challenged player starts the next round.
 
-    <section>
-        <h2>Flushing the Pile</h2>
+### Pile Flushing
 
-        <p>
-            If every eligible player passes and no one chooses to play cards or call Bluff, the center pile is flushed.
-        </p>
+If every eligible player passes and nobody calls Bluff:
 
-        <p><strong>When a pile is flushed:</strong></p>
-        <ul>
-            <li>All cards in the center pile are removed from play.</li>
-            <li>No player receives the flushed cards.</li>
-            <li>The player who made the last successful play before the flush starts the next round.</li>
-        </ul>
-    </section>
+* The center pile is flushed.
+* Flushed cards are removed from play.
+* The player who made the last successful play starts the next round.
 
-    <section>
-        <h2>New Round Rule</h2>
+### Winning
 
-        <p>A new round begins whenever:</p>
+A player wins when they have no cards remaining.
 
-        <ul>
-            <li>A bluff call has been resolved, or</li>
-            <li>The center pile has been flushed.</li>
-        </ul>
+#### Final Play Rule
 
-        <p>
-            The player starting the new round may declare any rank they choose.
-        </p>
+The final play must survive any bluff challenge:
 
-        <p>
-            Once a rank is declared, all players who choose to play cards during that round must continue declaring that same rank until the round ends.
-        </p>
-    </section>
+* If challenged and found to be a bluff, the player takes the pile and continues playing.
+* If not challenged, or proven truthful, the player wins immediately.
 
-    <section>
-        <h2>Winning the Game</h2>
+## 🤖 AI Bots
 
-        <p>
-            A player wins by getting rid of all cards in their hand.
-        </p>
+The game supports AI-controlled opponents that can:
 
-        <h3>Final Play Rule</h3>
+* Make strategic plays
+* Decide when to bluff
+* Evaluate bluff probabilities
+* Call Bluff based on game state
+* Adapt their behavior throughout the match
 
-        <p>
-            A player cannot win until their final play survives any bluff challenge.
-        </p>
+## 🚀 Future Plans
 
-        <ul>
-            <li>If a player's final play is challenged and found to be a bluff, they must take the entire center pile and continue playing.</li>
-            <li>If no player challenges the final play, or if the challenge proves the play was truthful, that player immediately wins the game.</li>
-        </ul>
-    </section>
+* Real-time multiplayer support
+* Online matchmaking
+* Player statistics
+* Ranked games
+* Custom rule variations
+* Mobile version
 
-    <section>
-        <h2>Example Round</h2>
+## 🛠️ Tech Stack
 
-        <ol>
-            <li>Player A places two cards face down and declares, "Two Kings."</li>
-            <li>Player B places one card face down and declares, "One King."</li>
-            <li>Player C passes.</li>
-            <li>Player D places two cards face down and declares, "Two Kings."</li>
-            <li>Player A calls "Bluff!" on Player D.</li>
-            <li>The pile is revealed.</li>
-            <li>If Player D lied, Player D takes the pile and Player A starts the next round.</li>
-            <li>If Player D told the truth, Player A takes the pile and Player D starts the next round.</li>
-        </ol>
-    </section>
+* Python
+* Object-Oriented Programming
+* AI Decision Engine
+* GUI Framework (Tkinter / PyQt / Web Frontend)
+* Multiplayer Support (Future)
 
-</body>
-</html>
+## 📄 License
+
+This project is created for educational and entertainment purposes.
